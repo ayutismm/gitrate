@@ -15,7 +15,6 @@ import httpx
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 
 # ============== CONFIG ==============
 class Settings:
@@ -340,6 +339,3 @@ async def user_data(username: str):
         return await github_service.aggregate_data(username)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-# Vercel handler
-handler = Mangum(app, lifespan="off")
