@@ -34,6 +34,14 @@
             "dest": "/api/index.py"
         },
         {
+            "src": "/sitemap.xml",
+            "dest": "/frontend2/sitemap.xml"
+        },
+        {
+            "src": "/robots.txt",
+            "dest": "/frontend2/robots.txt"
+        },
+        {
             "src": "/(.*)",
             "dest": "/frontend2/$1"
         }
