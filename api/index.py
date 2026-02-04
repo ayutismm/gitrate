@@ -283,8 +283,29 @@ async def analyze_developer(data: Dict, scores: Dict) -> AIQualitativeResponse:
     try:
         from openai import OpenAI
         client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=settings.OPENROUTER_API_KEY)
-        prompt = f"""Analyze this GitHub profile and return JSON with: context_multiplier (0.8-1.2), strengths (3 items), weaknesses (2 items), summary.
-        Base Score: {scores.get('base_score')}, Repos: {data.get('repos_summary', {}).get('total')}, Stars: {data.get('repos_summary', {}).get('total_stars')}"""
+        
+        repos = data.get('repos_summary', {})
+        prs = data.get('pull_requests', {})
+        activity = data.get('activity', {})
+        profile = data.get('profile', {})
+        
+        prompt = f"""You are a senior developer evaluating a GitHub profile. Analyze and return JSON.
+
+## GitHub Data
+- Username: {data.get('username')}
+- Base Score: {scores.get('base_score')}/100
+- Repos: {repos.get('total', 0)} (Original: {repos.get('original', 0)})
+- Stars: {repos.get('total_stars', 0)}, Forks: {repos.get('total_forks', 0)}
+- PRs: {prs.get('total', 0)} (Merged: {prs.get('merged', 0)}, Rate: {prs.get('merge_rate', 0)}%)
+- Reviews Given: {prs.get('reviews_given', 0)}
+- Commits (Year): {activity.get('total_commits_year', 0)}
+- Languages: {', '.join([l[0] for l in repos.get('top_languages', [])[:5]])}
+- Followers: {profile.get('followers', 0)}
+
+## Return JSON with this exact structure:
+{{"context_multiplier": 1.0, "qualitative_analysis": {{"contribution_notes": "2-3 sentences about contribution patterns", "pr_quality_notes": "2-3 sentences about PR quality and collaboration", "impact_notes": "2-3 sentences about community impact", "code_quality_notes": "2-3 sentences about code quality and tech diversity"}}, "strengths": ["strength1", "strength2", "strength3"], "weaknesses": ["area1", "area2"], "summary": "2-3 sentence executive summary"}}
+
+IMPORTANT: context_multiplier must be 0.8-1.2. Return ONLY valid JSON."""
         
         completion = client.chat.completions.create(model=settings.OPENROUTER_MODEL, 
             messages=[{"role": "user", "content": prompt}], temperature=0, response_format={"type": "json_object"})
