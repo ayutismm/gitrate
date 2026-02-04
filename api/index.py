@@ -250,16 +250,30 @@ def calculate_base_scores(data: Dict) -> Dict:
 
 # ============== AI SERVICE ==============
 def generate_mock_response(data: Dict, scores: Dict) -> AIQualitativeResponse:
+    username = data.get('username', 'Developer')
+    repos = data.get('repos_summary', {})
+    prs = data.get('pull_requests', {})
+    activity = data.get('activity', {})
+    tier = scores.get('base_tier', 'Intermediate')
+    
     return AIQualitativeResponse(
         context_multiplier=1.0,
         qualitative_analysis=QualitativeAnalysis(
-            contribution_notes=f"Shows {scores.get('base_tier', 'moderate')} contribution patterns.",
-            pr_quality_notes="Collaboration metrics analyzed.", impact_notes="Community presence evaluated.",
-            code_quality_notes=f"Uses {len(data.get('repos_summary', {}).get('languages', {}))} languages."
+            contribution_notes=f"{username} demonstrates {tier.lower()}-level contribution patterns with {repos.get('original', 0)} original repositories and {activity.get('total_commits_year', 0)} commits in the past year. Activity consistency shows dedicated engagement with open source.",
+            pr_quality_notes=f"Pull request metrics show {prs.get('merged', 0)} merged PRs with a {prs.get('merge_rate', 0)}% merge rate. {prs.get('reviews_given', 0)} code reviews given indicates collaborative development practices.",
+            impact_notes=f"Community impact is reflected through {repos.get('total_stars', 0)} stars earned across projects and {data.get('profile', {}).get('followers', 0)} followers. Repository engagement suggests growing influence in the developer community.",
+            code_quality_notes=f"Technical diversity spans {len(repos.get('languages', {}))} programming languages. Top technologies include expertise in {', '.join([l[0] for l in repos.get('top_languages', [])[:3]]) or 'various languages'}."
         ),
-        strengths=["Active contributor", "Diverse tech stack", "Consistent activity"],
-        weaknesses=["Room for more collaboration", "Could add more documentation"],
-        summary=f"{data.get('username', 'Developer')} is a {scores.get('base_tier', 'Intermediate').lower()}-level developer."
+        strengths=[
+            f"Active contributor with {repos.get('original', 0)} original repositories",
+            f"Consistent activity with {activity.get('total_commits_year', 0)} commits this year",
+            f"Diverse tech stack spanning {len(repos.get('languages', {}))} languages"
+        ],
+        weaknesses=[
+            "Could increase engagement in code reviews and PR discussions",
+            "Adding more documentation would improve project accessibility"
+        ],
+        summary=f"{username} is a {tier.lower()}-level developer demonstrating solid technical skills and consistent contribution patterns. Their GitHub profile reflects growing expertise and community engagement."
     )
 
 async def analyze_developer(data: Dict, scores: Dict) -> AIQualitativeResponse:
